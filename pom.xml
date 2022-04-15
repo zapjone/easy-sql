@@ -6,6 +6,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>easy-sql-parser</module>
+        <module>easy-sql-core</module>
     </modules>
 
     <parent>
