@@ -1,4 +1,4 @@
-package com.easy.sql.parser.validator;
+package com.easy.sql.parser.validate;
 
 import org.apache.calcite.sql.validate.SqlConformance;
 

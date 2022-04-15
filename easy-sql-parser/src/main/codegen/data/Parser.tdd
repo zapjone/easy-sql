@@ -33,6 +33,7 @@
         "com.easy.sql.parser.ddl.SqlDropTable"
         "com.easy.sql.parser.ddl.SqlDropView"
         "com.easy.sql.parser.ddl.SqlSet"
+        "com.easy.sql.parser.ddl.SqlReset"
         "com.easy.sql.parser.ddl.SqlTableColumn"
         "com.easy.sql.parser.ddl.SqlTableLike"
         "com.easy.sql.parser.ddl.SqlTableLike.FeatureOption"
@@ -62,6 +63,7 @@
         "com.easy.sql.parser.type.SqlMapTypeNameSpec"
         "com.easy.sql.parser.type.SqlRawTypeNameSpec"
         "com.easy.sql.parser.type.SqlTimestampLtzTypeNameSpec"
+        "com.easy.sql.parser.utils.ParserResource"
         "com.easy.sql.parser.validate.EasySqlConformance"
         "com.easy.sql.parser.SqlProperty"
         "org.apache.calcite.sql.SqlAlienSystemTypeNameSpec"
@@ -108,8 +110,6 @@
         "USE"
         "VIEWS"
         "VIRTUAL"
-        "WATERMARK"
-        "WATERMARKS"
         "TIMESTAMP_LTZ"
     ]
 
@@ -226,8 +226,6 @@
         "ISODOW"
         "ISOLATION"
         "ISOYEAR"
-        "JAR"
-        "JARS"
         "JAVA"
         "JSON"
         "K"

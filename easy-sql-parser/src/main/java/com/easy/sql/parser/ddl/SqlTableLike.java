@@ -33,16 +33,6 @@ import static java.util.Collections.singletonList;
  *     ‘format’: ‘json’
  * )
  *
- * CREATE TEMPORARY TABLE derived_table (
- *     WATERMARK FOR tstmp AS tsmp - INTERVAL '5' SECOND
- * )
- * WITH (
- *     ‘connector.starting-offset’: ‘0’
- * )
- * LIKE base_table (
- *   OVERWRITING OPTIONS,
- *   EXCLUDING CONSTRAINTS
- * )
  * }</pre>
  *
  * @author zhangap
@@ -62,8 +52,7 @@ public class SqlTableLike extends SqlCall implements ExtendedSqlNode {
         GENERATED,
         METADATA,
         OPTIONS,
-        PARTITIONS,
-        WATERMARKS
+        PARTITIONS
     }
 
     private final SqlIdentifier sourceTable;
