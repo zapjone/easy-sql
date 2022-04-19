@@ -1,1 +1,4 @@
 /.idea/
+/easy-sql-core/target/
+/target/
+/easy-sql-parser/target/

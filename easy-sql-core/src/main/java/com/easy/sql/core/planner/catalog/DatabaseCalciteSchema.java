@@ -10,44 +10,45 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * CatalogCalciteSchema
+ * DatabaseCalciteSchema
  *
- * @author zap
- * @version 1.0, 2022/04/15
+ * @author zhangap
+ * @version 1.0, 2022/4/19
  */
-public class CatalogCalciteSchema extends EasySqlSchema {
-
+public class DatabaseCalciteSchema extends EasySqlSchema {
     private final String catalogName;
+    private final String databaseName;
     private final CatalogManager catalogManager;
 
-    public CatalogCalciteSchema(
-            String catalogName, CatalogManager catalog) {
+    public DatabaseCalciteSchema(
+            String catalogName,
+            String databaseName,
+            CatalogManager catalog) {
+        this.databaseName = databaseName;
         this.catalogName = catalogName;
         this.catalogManager = catalog;
     }
 
+
     @Override
-    public Schema getSubSchema(String schemaName) {
-        if (catalogManager.schemaExists(catalogName, schemaName)) {
-            return new DatabaseCalciteSchema(
-                    schemaName, catalogName, catalogManager);
-        } else {
-            return null;
-        }
+    public Table getTable(String tableName) {
+        final ObjectIdentifier identifier = ObjectIdentifier.of(catalogName, databaseName, tableName);
+        return catalogManager.getTable(identifier);
+    }
+
+
+    @Override
+    public Set<String> getTableNames() {
+        return catalogManager.listTables(catalogName, databaseName);
     }
 
     @Override
-    public Set<String> getSubSchemaNames() {
-        return catalogManager.listSchemas(catalogName);
-    }
-
-    @Override
-    public Table getTable(String name) {
+    public Schema getSubSchema(String s) {
         return null;
     }
 
     @Override
-    public Set<String> getTableNames() {
+    public Set<String> getSubSchemaNames() {
         return new HashSet<>();
     }
 
@@ -60,4 +61,5 @@ public class CatalogCalciteSchema extends EasySqlSchema {
     public boolean isMutable() {
         return true;
     }
+
 }
