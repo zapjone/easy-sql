@@ -139,7 +139,7 @@ public final class EasySqlConfigOptions {
                                     + "such as \"America/Los_Angeles\", or a custom timezone id such as \"GMT-08:00\".");
 
     public static final ConfigOption<Integer> MAX_LENGTH_GENERATED_CODE =
-            key("table.generated-code.max-length")
+            key("easy.generated-code.max-length")
                     .intType()
                     .defaultValue(4000)
                     .withDescription(
