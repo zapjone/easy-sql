@@ -1,4 +1,4 @@
-package com.easy.sql.core.desc;
+package com.easy.sql.core.configuration.desc;
 
 /**
  * @author zhangap

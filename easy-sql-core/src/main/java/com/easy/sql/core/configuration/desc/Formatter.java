@@ -1,4 +1,4 @@
-package com.easy.sql.core.desc;
+package com.easy.sql.core.configuration.desc;
 
 import java.util.EnumSet;
 

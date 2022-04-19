@@ -1,10 +1,9 @@
 package com.easy.sql.core.configuration;
 
-import com.easy.sql.core.desc.Description;
+import com.easy.sql.core.configuration.desc.Description;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;

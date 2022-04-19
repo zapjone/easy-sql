@@ -1,4 +1,4 @@
-package com.easy.sql.core.desc;
+package com.easy.sql.core.configuration.desc;
 
 import com.google.common.base.Strings;
 
