@@ -31,16 +31,16 @@ public final class FactoryUtil {
     @SuppressWarnings("all")
     public static <T extends Factory> T discoverFactory(
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
-        /* TODO 查找所有的Factory实现, SPI实现 */
+        /* 查找所有的Factory实现, SPI实现 */
         final List<Factory> factories = discoverFactories(classLoader);
 
-        /* TODO 1. 按给定的Factory来过滤其实现的Factory */
+        /* 1. 按给定的Factory来过滤其实现的Factory */
         final List<Factory> foundFactories =
                 factories.stream()
                         .filter(f -> factoryClass.isAssignableFrom(f.getClass()))
                         .collect(Collectors.toList());
 
-        /* TODO 如果过滤后，未找到对应的Factory，将抛出异常 */
+        /* 如果过滤后，未找到对应的Factory，将抛出异常 */
         if (foundFactories.isEmpty()) {
             throw new ValidationException(
                     String.format(
@@ -48,13 +48,13 @@ public final class FactoryUtil {
                             factoryClass.getName()));
         }
 
-        /* TODO 2. 按照Factory的标识来进行再次过滤，默认为default */
+        /* 2. 按照Factory的标识来进行再次过滤，默认为default */
         final List<Factory> matchingFactories =
                 foundFactories.stream()
                         .filter(f -> f.factoryIdentifier().equals(factoryIdentifier))
                         .collect(Collectors.toList());
 
-        /* TODO 如果第二次过滤后，发现为空，将抛出异常 */
+        /* 如果第二次过滤后，发现为空，将抛出异常 */
         if (matchingFactories.isEmpty()) {
             throw new ValidationException(
                     String.format(
@@ -69,7 +69,7 @@ public final class FactoryUtil {
                                     .sorted()
                                     .collect(Collectors.joining("\n"))));
         }
-        /* TODO 如果过滤后，多余一个Factory，将抛出异常信息，可能是因为identifier名称重复 */
+        /* 如果过滤后，发现多余一个Factory，将抛出异常信息，可能是因为identifier名称重复 */
         if (matchingFactories.size() > 1) {
             throw new ValidationException(
                     String.format(
@@ -84,7 +84,7 @@ public final class FactoryUtil {
                                     .collect(Collectors.joining("\n"))));
         }
 
-        /* TODO 获取第一个Factory实现并转换为最终的Facotry返回 */
+        /* 获取第一个Factory实现并转换为最终的Facotry返回 */
         return (T) matchingFactories.get(0);
     }
 
