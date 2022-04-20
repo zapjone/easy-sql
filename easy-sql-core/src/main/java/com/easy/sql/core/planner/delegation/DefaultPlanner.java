@@ -6,8 +6,10 @@ import com.easy.sql.core.dag.Information;
 import com.easy.sql.core.factories.FactoryUtil;
 import com.easy.sql.core.planner.catalog.CatalogManager;
 import com.easy.sql.core.planner.catalog.CatalogManagerCalciteSchema;
+import com.easy.sql.core.planner.catalog.FunctionCatalog;
 import org.apache.calcite.sql.SqlNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.calcite.jdbc.CalciteSchemaBuilder.asRootSchema;
@@ -21,17 +23,17 @@ import static org.apache.calcite.jdbc.CalciteSchemaBuilder.asRootSchema;
 public class DefaultPlanner implements Planner {
 
     private final EasySqlConfig config;
-    /**
-     * CatalogManager
-     */
+    private final FunctionCatalog functionCatalog;
     private final CatalogManager catalogManager;
     private Parser parser;
     private PlannerContext plannerContext;
     private SqlDialect currentDialect;
 
     public DefaultPlanner(EasySqlConfig config,
+                          FunctionCatalog functionCatalog,
                           CatalogManager catalogManager) {
         this.config = config;
+        this.functionCatalog = functionCatalog;
         this.catalogManager = catalogManager;
         this.currentDialect = config.getSqlDialect();
     }
@@ -49,6 +51,10 @@ public class DefaultPlanner implements Planner {
 
     @Override
     public List<Information> translate(List<SqlNode> sqlNode) {
+        if (sqlNode.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         return null;
     }
 
@@ -69,7 +75,7 @@ public class DefaultPlanner implements Planner {
      */
     private PlannerContext getPlannerContext() {
         if (null == plannerContext) {
-            this.plannerContext = new PlannerContext(config, catalogManager,
+            this.plannerContext = new PlannerContext(config, functionCatalog, catalogManager,
                     asRootSchema(new CatalogManagerCalciteSchema(catalogManager)),
                     getTraitDefs()
             );

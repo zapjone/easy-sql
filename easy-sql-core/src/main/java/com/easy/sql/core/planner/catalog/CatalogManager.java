@@ -1,10 +1,12 @@
 package com.easy.sql.core.planner.catalog;
 
+import com.easy.sql.core.configuration.EasySqlConfig;
 import com.easy.sql.core.exceptions.CatalogException;
 import com.easy.sql.core.exceptions.CatalogNotExistException;
 import com.easy.sql.core.exceptions.DatabaseNotExistException;
 import com.easy.sql.core.exceptions.EasySqlException;
 import com.easy.sql.core.util.StringUtils;
+import com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl;
 import org.apache.calcite.schema.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +47,10 @@ public final class CatalogManager {
 
     private String currentDatabaseName;
 
-    private CatalogManager(String defaultCatalogName, Catalog defaultCatalog) {
+    private final DataTypeFactory typeFactory;
+
+    private CatalogManager(String defaultCatalogName, Catalog defaultCatalog,
+                           DataTypeFactory typeFactory) {
         checkArgument(
                 !StringUtils.isNullOrWhitespaceOnly(defaultCatalogName),
                 "Default catalog name cannot be null or empty");
@@ -57,6 +62,11 @@ public final class CatalogManager {
         currentDatabaseName = defaultCatalog.getDefaultDatabase();
 
         temporaryTables = new HashMap<>();
+        this.typeFactory = typeFactory;
+    }
+
+    public DataTypeFactory getDataTypeFactory() {
+        return typeFactory;
     }
 
     public static Builder newBuilder() {
@@ -67,6 +77,7 @@ public final class CatalogManager {
 
         private ClassLoader classLoader;
 
+        private EasySqlConfig config;
 
         private String defaultCatalogName;
 
@@ -74,6 +85,11 @@ public final class CatalogManager {
 
         public Builder classLoader(ClassLoader classLoader) {
             this.classLoader = classLoader;
+            return this;
+        }
+
+        public Builder config(EasySqlConfig config) {
+            this.config = config;
             return this;
         }
 
@@ -87,7 +103,8 @@ public final class CatalogManager {
 
         public CatalogManager build() {
             checkNotNull(classLoader, "Class loader cannot be null");
-            return new CatalogManager(defaultCatalogName, defaultCatalog);
+            return new CatalogManager(defaultCatalogName, defaultCatalog,
+                    new DataTypeFactoryImpl(classLoader, config));
         }
     }
 
@@ -332,7 +349,7 @@ public final class CatalogManager {
     /**
      * 获取表
      */
-    public Table getTable(ObjectIdentifier objectIdentifier){
+    public Table getTable(ObjectIdentifier objectIdentifier) {
         // CatalogSchemaTable
         return null;
     }
