@@ -69,8 +69,9 @@ public class DefaultPlanner implements Planner {
      */
     private PlannerContext getPlannerContext() {
         if (null == plannerContext) {
-            this.plannerContext = new PlannerContext(config,
-                    asRootSchema(new CatalogManagerCalciteSchema(catalogManager))
+            this.plannerContext = new PlannerContext(config, catalogManager,
+                    asRootSchema(new CatalogManagerCalciteSchema(catalogManager)),
+                    getTraitDefs()
             );
         }
         return this.plannerContext;
