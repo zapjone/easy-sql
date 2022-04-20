@@ -38,28 +38,28 @@ public class EasySqlCalciteCatalogReader extends CalciteCatalogReader {
                 typeFactory, config);
     }
 
-/*
     @Override
     public Prepare.PreparingTable getTable(List<String> names) {
         Prepare.PreparingTable originRelOptTable = super.getTable(names);
         if (originRelOptTable == null) {
             return null;
         } else {
-            // Wrap as FlinkPreparingTableBase to use in query optimization.
+            // Wrap as EasySqlPreparingTableBase to use in query optimization.
             CatalogSchemaTable table = originRelOptTable.unwrap(CatalogSchemaTable.class);
             if (table != null) {
-                return toPreparingTable(
+                /*return toPreparingTable(
                         originRelOptTable.getRelOptSchema(),
                         originRelOptTable.getQualifiedName(),
                         originRelOptTable.getRowType(),
-                        table);
+                        table);*/
+                return originRelOptTable;
             } else {
                 return originRelOptTable;
             }
         }
     }
 
-    *//**
+    /**
      * Translate this {@link CatalogSchemaTable} into Flink source table.
      *//*
     private static EasySqlPreparingTableBase toPreparingTable(
@@ -161,9 +161,7 @@ public class EasySqlCalciteCatalogReader extends CalciteCatalogReader {
         }
     }
 
-    *//**
-     * Checks whether the {@link CatalogTable} uses legacy connector source options.
-     *//*
+
     private static boolean isLegacySourceOptions(
             CatalogTable catalogTable, CatalogSchemaTable schemaTable) {
         // normalize option keys
