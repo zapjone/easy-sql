@@ -1,16 +1,20 @@
 package com.easy.sql.core.planner.delegation;
 
+import com.easy.sql.core.channel.Operator;
 import com.easy.sql.core.common.SqlDialect;
 import com.easy.sql.core.configuration.EasySqlConfig;
-import com.easy.sql.core.dag.Information;
 import com.easy.sql.core.factories.FactoryUtil;
 import com.easy.sql.core.planner.catalog.CatalogManager;
 import com.easy.sql.core.planner.catalog.CatalogManagerCalciteSchema;
 import com.easy.sql.core.planner.catalog.FunctionCatalog;
+import com.easy.sql.core.planner.plan.optimize.EasyOptimizer;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.calcite.jdbc.CalciteSchemaBuilder.asRootSchema;
 
@@ -39,6 +43,11 @@ public class DefaultPlanner implements Planner {
     }
 
     @Override
+    public EasySqlConfig getConfig() {
+        return this.config;
+    }
+
+    @Override
     public Parser getParser() {
         SqlDialect configDialect = config.getSqlDialect();
         if (null == parser || configDialect != currentDialect) {
@@ -50,12 +59,47 @@ public class DefaultPlanner implements Planner {
     }
 
     @Override
-    public List<Information> translate(List<SqlNode> sqlNode) {
-        if (sqlNode.isEmpty()) {
+    public List<Operator> translate(List<SqlNode> sqlNodes) {
+        if (sqlNodes.isEmpty()) {
             return new ArrayList<>();
         }
 
+        List<RelNode> relNodes = translateToRel(sqlNodes);
+        // 对sqlNod进行优化
+        List<RelNode> optimizedRelNodes = optimize(relNodes);
+
         return null;
+    }
+
+    /**
+     * 将SqlNode列表转换为RelNode列表
+     *
+     * @param sqlNodes SqlNode列表
+     * @return RelNode列表
+     */
+    public List<RelNode> translateToRel(List<SqlNode> sqlNodes) {
+        return sqlNodes.stream().map(this::toRel).collect(Collectors.toList());
+    }
+
+    /**
+     * 对SqlNode进行优化
+     *
+     * @param sqlNodes sqlNode列表
+     * @return 优化后的RelNode列表
+     */
+    private List<RelNode> optimize(List<RelNode> sqlNodes) {
+        return new EasyOptimizer(this).optimize(sqlNodes);
+    }
+
+    /**
+     * 转换SqlNode
+     */
+    private RelNode toRel(SqlNode sqlNode) {
+        if (sqlNode.getKind().belongsTo(SqlKind.QUERY)) {
+            return parser.rel(sqlNode);
+        }
+
+        throw new UnsupportedOperationException("不支持的SqlNode类型:" + sqlNode.getKind().lowerName);
     }
 
     private Parser createNewParser(SqlDialect dialect) {

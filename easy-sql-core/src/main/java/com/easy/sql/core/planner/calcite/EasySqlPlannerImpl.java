@@ -1,6 +1,8 @@
 package com.easy.sql.core.planner.calcite;
 
 import com.easy.sql.core.exceptions.ValidationException;
+import com.easy.sql.core.planner.parser.CalciteParser;
+import com.easy.sql.core.planner.plan.EasySqlCalciteCatalogReader;
 import com.easy.sql.parser.ddl.SqlReset;
 import com.easy.sql.parser.ddl.SqlSet;
 import com.easy.sql.parser.dml.SqlBeginStatementSet;
@@ -14,15 +16,25 @@ import com.easy.sql.parser.dql.SqlShowFunctions;
 import com.easy.sql.parser.dql.SqlShowPartitions;
 import com.easy.sql.parser.dql.SqlShowTables;
 import com.easy.sql.parser.dql.SqlShowViews;
+import com.google.common.collect.ImmutableList;
 import org.apache.calcite.config.NullCollation;
 import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.prepare.CalciteCatalogReader;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.RelRoot;
+import org.apache.calcite.rel.hint.RelHint;
+import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperatorTable;
 import org.apache.calcite.sql.validate.SqlValidator;
+import org.apache.calcite.sql2rel.SqlRexConvertletTable;
+import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.tools.FrameworkConfig;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -36,6 +48,10 @@ public class EasySqlPlannerImpl {
     private final EasySqlTypeFactory typeFactory;
     private final RelOptCluster cluster;
 
+    private final CalciteParser parser;
+    private final SqlRexConvertletTable convertletTable;
+    private final SqlToRelConverter.Config sqlToRelConverterConfig;
+
     private EasyCalciteSqlValidator validator;
     private SqlOperatorTable operatorTable;
 
@@ -48,7 +64,10 @@ public class EasySqlPlannerImpl {
         this.typeFactory = typeFactory;
         this.cluster = cluster;
 
-        operatorTable = config.getOperatorTable();
+        this.operatorTable = config.getOperatorTable();
+        this.parser = new CalciteParser(config.getParserConfig());
+        this.convertletTable = config.getConvertletTable();
+        this.sqlToRelConverterConfig = config.getSqlToRelConverterConfig();
     }
 
     /**
@@ -91,20 +110,81 @@ public class EasySqlPlannerImpl {
     }
 
     /**
+     * 将SqlNode转换为RelNode,主要用于查询时
+     */
+    public RelRoot rel(SqlNode validateSqlNode) {
+        return rel(validateSqlNode, getOrCreateSqlValidator());
+    }
+
+    /**
+     * 将SqlNode转换为RelNode
+     */
+    private RelRoot rel(SqlNode sqlNode, EasyCalciteSqlValidator sqlValidator) {
+        SqlToRelConverter sqlToRelConverter = createSqlToRelConverter(sqlValidator);
+        return sqlToRelConverter.convertQuery(sqlNode, false, false);
+    }
+
+    private SqlToRelConverter createSqlToRelConverter(EasyCalciteSqlValidator sqlValidator) {
+        return new SqlToRelConverter(createToRelContext(),
+                sqlValidator, sqlValidator.getCatalogReader().unwrap(CalciteCatalogReader.class),
+                cluster, convertletTable, sqlToRelConverterConfig);
+    }
+
+    private RelOptTable.ToRelContext createToRelContext() {
+        return new ToRelContextImpl();
+    }
+
+    /**
      * 创建sql校验器
      */
     private EasyCalciteSqlValidator getOrCreateSqlValidator() {
         if (validator == null) {
             CalciteCatalogReader calciteCatalogReader = catalogReaderSupplier.apply(false);
-            validator = new EasyCalciteSqlValidator(operatorTable,
-                    calciteCatalogReader,
-                    typeFactory,
-                    SqlValidator.Config.DEFAULT
-                            .withIdentifierExpansion(true)
-                            .withDefaultNullCollation(NullCollation.LOW)
-                            .withTypeCoercionEnabled(false));
+            validator = createSqlValidator(calciteCatalogReader);
         }
         return validator;
+    }
+
+    private EasyCalciteSqlValidator createSqlValidator(CalciteCatalogReader catalogReader) {
+        return new EasyCalciteSqlValidator(operatorTable,
+                catalogReader,
+                typeFactory,
+                SqlValidator.Config.DEFAULT
+                        .withIdentifierExpansion(true)
+                        .withDefaultNullCollation(NullCollation.LOW)
+                        .withTypeCoercionEnabled(false));
+    }
+
+    public class ToRelContextImpl implements RelOptTable.ToRelContext {
+
+        @Override
+        public RelOptCluster getCluster() {
+            return cluster;
+        }
+
+        @Override
+        public List<RelHint> getTableHints() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public RelRoot expandView(RelDataType rowType,
+                                  String queryString,
+                                  List<String> schemaPath,
+                                  List<String> viewPath) {
+            SqlNode parsed = parser.parse(queryString);
+
+            CalciteCatalogReader originalReader = catalogReaderSupplier.apply(false);
+
+            List<List<String>> defaultSchemas = new ArrayList<>();
+            defaultSchemas.add(schemaPath);
+            defaultSchemas.add(schemaPath.subList(0, 1));
+            EasySqlCalciteCatalogReader readerWithPathAdjusted = new EasySqlCalciteCatalogReader(originalReader.getRootSchema(),
+                    defaultSchemas, originalReader.getTypeFactory(), originalReader.getConfig());
+
+            EasyCalciteSqlValidator validator = createSqlValidator(readerWithPathAdjusted);
+            return rel(validate(parsed, validator));
+        }
     }
 
 }

@@ -3,6 +3,8 @@ package com.easy.sql.core.planner.delegation;
 import com.easy.sql.core.planner.calcite.EasySqlPlannerImpl;
 import com.easy.sql.core.planner.catalog.CatalogManager;
 import com.easy.sql.core.planner.parser.CalciteParser;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.sql.SqlNode;
 
 import java.util.function.Supplier;
@@ -37,6 +39,13 @@ public class ParserImpl implements Parser {
 
         // 校验
         return plannerImpl.validate(parsed);
+    }
+
+    @Override
+    public RelNode rel(SqlNode sqlNode) {
+        EasySqlPlannerImpl sqlPlanner = validatorSupplier.get();
+        RelRoot relRoot = sqlPlanner.rel(sqlNode);
+        return relRoot.project();
     }
 
     @Override

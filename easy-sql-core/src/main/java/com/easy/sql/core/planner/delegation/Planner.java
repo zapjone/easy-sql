@@ -1,9 +1,8 @@
 package com.easy.sql.core.planner.delegation;
 
-import com.easy.sql.core.dag.Information;
-import org.apache.calcite.plan.Convention;
+import com.easy.sql.core.channel.Operator;
+import com.easy.sql.core.configuration.EasySqlConfig;
 import org.apache.calcite.plan.ConventionTraitDef;
-import org.apache.calcite.plan.RelTrait;
 import org.apache.calcite.plan.RelTraitDef;
 import org.apache.calcite.sql.SqlNode;
 
@@ -19,6 +18,11 @@ import java.util.List;
 public interface Planner {
 
     /**
+     * 配置信息
+     */
+    EasySqlConfig getConfig();
+
+    /**
      * 获取解析器
      */
     Parser getParser();
@@ -26,7 +30,7 @@ public interface Planner {
     /**
      * 将SqlNode转换为Information
      */
-    List<Information> translate(List<SqlNode> sqlNode);
+    List<Operator> translate(List<SqlNode> sqlNode);
 
     /**
      * 获取优化规则列表，默认添加ConventionTraitDef规则

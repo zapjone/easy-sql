@@ -1,12 +1,14 @@
 package com.easy.sql.core.planner.service;
 
 import com.easy.sql.core.configuration.EasySqlConfig;
-import com.easy.sql.core.dag.Information;
+import com.easy.sql.core.channel.Operator;
 import com.easy.sql.core.planner.catalog.CatalogManager;
 import com.easy.sql.core.planner.catalog.DefaultMemoryCatalog;
 import com.easy.sql.core.planner.catalog.FunctionCatalog;
 import com.easy.sql.core.planner.delegation.DefaultPlanner;
 import com.easy.sql.core.planner.delegation.Planner;
+import com.easy.sql.parser.ddl.SqlCreateCatalog;
+import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 
 import java.util.Collections;
@@ -43,11 +45,7 @@ public class EasySqlService {
         // 解析sql并进行校验
         SqlNode validated = planner.getParser().parse(statement);
 
-        // 转换为底层Information结构
-        List<Information> informations = planner.translate(Collections.singletonList(validated));
-
-        // 执行Information
-        return null;
+        return executeInternal(validated);
     }
 
     /**
@@ -70,4 +68,31 @@ public class EasySqlService {
                 settings.getConfig());
     }
 
+    /**
+     * 内置执行
+     */
+    private EasySqlResult executeInternal(SqlNode sqlNode) {
+        // 根据Sql类型类型进行判断，只有sql查询需要进行优化和转换，其他的可以直接调用catalog进行执行
+        if (sqlNode instanceof SqlCreateCatalog) {
+            SqlCreateCatalog createCatalog = (SqlCreateCatalog) sqlNode;
+            //catalogManager.registerCatalog();
+            return EasySqlResult.RESULT_OK;
+        } else if (sqlNode.getKind().belongsTo(SqlKind.QUERY)) {
+            // 查询优化操作
+            List<Operator> operators = planner.translate(Collections.singletonList(sqlNode));
+
+            // 执行operators
+            return executePlan(operators);
+        } else {
+            throw new UnsupportedOperationException("不支持的操作: " + sqlNode.getKind().lowerName);
+        }
+    }
+
+    /**
+     * 执行sql翻译后的执行组件列表
+     */
+    private EasySqlResult executePlan(List<Operator> operators) {
+        /*TODO 当前还未写执行方式*/
+        return null;
+    }
 }
