@@ -23,7 +23,7 @@ public class EasyOptimizer implements Optimizer {
 
     @Override
     public List<RelNode> optimize(List<RelNode> roots) {
-        EasySqlChainedProgram<EasySqlOptimizerContext> programs = EasySqlProgram.buildProgram(planner.getConfig());
+        EasySqlChainedProgram<EasySqlOptimizeContext> programs = EasySqlProgram.buildProgram(planner.getConfig());
         return roots.stream()
                 .map(relNode -> programs.optimize(relNode, () -> false))
                 .collect(Collectors.toList());

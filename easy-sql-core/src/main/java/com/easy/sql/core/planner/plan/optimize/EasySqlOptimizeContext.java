@@ -6,7 +6,7 @@ import org.apache.calcite.plan.Context;
  * @author zhangap
  * @version 1.0, 2022/4/24
  */
-public interface EasySqlOptimizerContext extends Context {
+public interface EasySqlOptimizeContext extends Context {
 
     boolean isUpdateBeforeRequired();
 

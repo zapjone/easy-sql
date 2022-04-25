@@ -14,7 +14,7 @@ import java.util.Map;
  * @author zhangap
  * @version 1.0, 2022/4/24
  */
-public class EasySqlChainedProgram<OC extends EasySqlOptimizerContext>
+public class EasySqlChainedProgram<OC extends EasySqlOptimizeContext>
         implements EasySqlOptimizeProgram<OC> {
 
     private static final Logger LOG = LoggerFactory.getLogger(EasySqlChainedProgram.class);

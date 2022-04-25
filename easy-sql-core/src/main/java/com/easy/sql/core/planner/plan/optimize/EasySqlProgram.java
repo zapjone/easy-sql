@@ -1,6 +1,9 @@
 package com.easy.sql.core.planner.plan.optimize;
 
 import com.easy.sql.core.configuration.EasySqlConfig;
+import org.apache.calcite.plan.hep.HepMatchOrder;
+
+import static com.easy.sql.core.planner.plan.optimize.EasySqlHepRuleSetProgram.HepRulesExecutionType.RULE_SEQUENCE;
 
 /**
  * 优化规则列表
@@ -25,9 +28,16 @@ public class EasySqlProgram {
     /**
      * 根据优化规则进行构建，添加规则列表
      */
-    public static EasySqlChainedProgram<EasySqlOptimizerContext> buildProgram(EasySqlConfig config) {
-        EasySqlChainedProgram<EasySqlOptimizerContext> chainedProgram = new EasySqlChainedProgram<>();
-        chainedProgram.addList(SUBQUERY_REWRITE, null);
+    public static EasySqlChainedProgram<EasySqlOptimizeContext> buildProgram(EasySqlConfig config) {
+        EasySqlChainedProgram<EasySqlOptimizeContext> chainedProgram = new EasySqlChainedProgram<>();
+        chainedProgram.addList(SUBQUERY_REWRITE,
+                EasySqlGroupProgram.newBuilder()
+                        .addProgram(EasySqlHepRuleSetProgram.newBuilder()
+                                .setHepRulesExecutionType(RULE_SEQUENCE)
+                                .setHepMatchOrder(HepMatchOrder.BOTTOM_UP)
+                                // .add() // 加入其他规则
+                                .build(), "convert correlate to temporal table join")
+                        .build());
 
         return chainedProgram;
     }
