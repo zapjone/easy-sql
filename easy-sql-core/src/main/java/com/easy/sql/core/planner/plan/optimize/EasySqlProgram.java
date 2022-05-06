@@ -1,6 +1,7 @@
 package com.easy.sql.core.planner.plan.optimize;
 
 import com.easy.sql.core.configuration.EasySqlConfig;
+import com.easy.sql.core.planner.plan.rules.logical.EasyRuleSets;
 import org.apache.calcite.plan.hep.HepMatchOrder;
 
 import static com.easy.sql.core.planner.plan.optimize.EasySqlHepRuleSetProgram.HepRulesExecutionType.RULE_SEQUENCE;
@@ -35,8 +36,13 @@ public class EasySqlProgram {
                         .addProgram(EasySqlHepRuleSetProgram.newBuilder()
                                 .setHepRulesExecutionType(RULE_SEQUENCE)
                                 .setHepMatchOrder(HepMatchOrder.BOTTOM_UP)
-                                // .add() // 加入其他规则
-                                .build(), "convert correlate to temporal table join")
+                                .add(EasyRuleSets.TABLE_REF_RULES)
+                                .build(), "convert table references before rewriting sub-queries to semi-join")
+                        .addProgram(EasySqlHepRuleSetProgram.newBuilder()
+                                .setHepRulesExecutionType(RULE_SEQUENCE)
+                                .setHepMatchOrder(HepMatchOrder.BOTTOM_UP)
+                                .add(EasyRuleSets.SEMI_JOIN_RULES)
+                                .build(), "rewrite sub-queries to semi-join")
                         .build());
 
         return chainedProgram;
